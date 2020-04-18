@@ -1,0 +1,6 @@
+{
+    "port": "/dev/ttyACM0",
+    "programmer": "AVRISP mkII",
+    "board": "arduino:avr:uno",
+    "sketch": "complex_lcd_menu.ino"
+}

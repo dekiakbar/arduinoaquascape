@@ -1,15 +1,5 @@
-// String menuItems[] = {"LCD Setting", "ITEM 2", "ITEM 3", "ITEM 4", "ITEM 5", "ITEM 6", "ITEM 7", "ITEM 8", "ITEM 9", "ITEM 10"};
 String menuItems[] = {"Set LED On", "Set LED Off", "Feed Now", "LCD Setting", "Set Feeder", "Time LED On", "Time LED Off"};
-// Navigation button variables
-int readKey;
-int savedDistance = 0;
 
-// Menu control variables
-int menuPage = 0;
-int maxMenuPages = round(((sizeof(menuItems) / sizeof(String)) / 2) + .5);
-int cursorPosition = 0;
-
-int brightness = 50;
 // Creates 3 custom characters for the menu display
 byte downArrow[8] = {
   0b00100, //   *
@@ -47,9 +37,27 @@ byte menuCursor[8] = {
 #include <Wire.h>
 #include <LiquidCrystal.h>
 #include <EEPROM.h>
+#include <ServoTimer2.h>
+
+
+// Navigation button variables
+int readKey;
+int savedDistance = 0;
+
+// Menu control variables
+int menuPage = 0;
+int maxMenuPages = round(((sizeof(menuItems) / sizeof(String)) / 2) + .5);
+int cursorPosition = 0;
 
 // Setting the LCD shields pins
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+int brightness = 50;
+int lcd_brightness_pin = 10;
+
+// Servo Setting
+ServoTimer2 servo;
+int servo_pin= 3;
+int max_spin = 2;
 
 void setup() {
 
@@ -59,14 +67,14 @@ void setup() {
   // Initializes and clears the LCD screen
   lcd.begin(16, 2);
   lcd.clear();
-
-  // Creates the byte for the 3 custom characters
   lcd.createChar(0, menuCursor);
   lcd.createChar(1, upArrow);
   lcd.createChar(2, downArrow);
-
   brightness = getLcdBrightness();
-  analogWrite(10, brightness);
+  analogWrite(lcd_brightness_pin, brightness);
+
+  // Servo Pin 
+  servo.attach(servo_pin);
 }
 
 void loop() {
@@ -164,7 +172,7 @@ void operateMainMenu() {
             menuItem2();
             break;
           case 2:
-            menuItem3();
+            feedNow();
             break;
           case 3:
             setBrightnessMenu();
@@ -297,7 +305,7 @@ void setBrightnessMenu() { // Function executes when you select the 2nd item fro
         }
         
         saveLcdBrightness(brightness);
-        analogWrite(10, brightness);
+        analogWrite(lcd_brightness_pin, brightness);
         lcd.setCursor(8, 1);
         lcd.print("    ");
         lcd.setCursor(8, 1);
@@ -315,7 +323,7 @@ void setBrightnessMenu() { // Function executes when you select the 2nd item fro
         }
         
         saveLcdBrightness(brightness);
-        analogWrite(10, brightness);
+        analogWrite(lcd_brightness_pin, brightness);
         lcd.setCursor(8, 1);
         lcd.print("   ");
         lcd.setCursor(8, 1);
@@ -353,12 +361,14 @@ void menuItem2() { // Function executes when you select the 2nd item from main m
   }
 }
 
-void menuItem3() { // Function executes when you select the 3rd item from main menu
+void feedNow() { // Function executes when you select the 3rd item from main menu
   int activeButton = 0;
 
   lcd.clear();
-  lcd.setCursor(3, 0);
-  lcd.print("Sub Menu 3");
+  lcd.setCursor(0, 0);
+  lcd.print(" Feed The Fish! ");
+  lcd.setCursor(0, 1);
+  lcd.print(" Press Right! ");
 
   while (activeButton == 0) {
     int button;
@@ -369,6 +379,9 @@ void menuItem3() { // Function executes when you select the 3rd item from main m
     }
     button = evaluateButton(readKey);
     switch (button) {
+      case 1:
+        moveServo();
+        break;
       case 4:  // This case will execute if the "back" button is pressed
         button = 0;
         activeButton = 1;
@@ -551,4 +564,13 @@ void saveLcdBrightness(int val){
 
 int getLcdBrightness(){
   return EEPROM.read(0);
+}
+
+void moveServo(){
+  for (int i = 0; i < max_spin; i++){
+    servo.write(544);
+    delay(1000);
+    servo.write(2400);
+    delay(1000);
+  }
 }

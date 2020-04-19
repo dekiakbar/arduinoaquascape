@@ -1,5 +1,5 @@
 String menuItems[] = {"Set LED On", "Set LED Off", "Feed Now", "LCD Setting", "Set Feeder", "Time LED On", "Time LED Off"};
-
+String homePageTitle = "";
 // Creates 3 custom characters for the menu display
 byte downArrow[8] = {
   0b00100, //   *
@@ -38,10 +38,12 @@ byte menuCursor[8] = {
 #include <LiquidCrystal.h>
 #include <EEPROM.h>
 #include <ServoTimer2.h>
+#include "RTClib.h"
 
 
 // Navigation button variables
 int readKey;
+int key;
 int savedDistance = 0;
 
 // Menu control variables
@@ -56,8 +58,11 @@ int lcd_brightness_pin = 10;
 
 // Servo Setting
 ServoTimer2 servo;
-int servo_pin= 3;
+int servo_pin= 11;
 int max_spin = 2;
+
+// RTC Setting
+RTC_DS1307 rtc;
 
 void setup() {
 
@@ -75,17 +80,22 @@ void setup() {
 
   // Servo Pin 
   servo.attach(servo_pin);
+
+  // RTC setup
+  // The following code will set the RTC same as computer time, Just use this code once and if your RTC is not set before.
+  // if your RTC was set then just ignore this code.
+  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
+  if (! rtc.begin()) {
+    while (1);
+  }
 }
 
 void loop() {
   mainMenuDraw();
   drawCursor();
   operateMainMenu();
-  
-  // lcd.clear();
-  // lcd.setCursor(0,0);
-  // lcd.print(round(((sizeof(menuItems) / sizeof(String)) / 2) + .5));
-  // delay(10000000);
+  // homePage();
 }
 
 // This function will generate the 2 menu items that can fit on the screen. They will change as you scroll through your menu. Up and down arrows will indicate your current menu position.
@@ -573,4 +583,31 @@ void moveServo(){
     servo.write(2400);
     delay(1000);
   }
+}
+
+void homePage(){
+  DateTime now = rtc.now();
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("   Aquaduino   ");
+
+  lcd.setCursor(0, 1);
+  lcd.print( now.year(),DEC );
+  lcd.print('/');
+  lcd.print( now.month(),DEC );
+  lcd.print('/');
+  lcd.print( now.day(),DEC );
+  lcd.print(' ');
+  lcd.print( now.hour(),DEC );
+  lcd.print(':');
+  lcd.print( now.minute(),DEC );
+
+  Serial.print( now.hour(),DEC  );
+  Serial.print(':');
+  Serial.print( now.minute(),DEC  );
+  Serial.print(':');
+  Serial.print( now.second(),DEC  );
+  Serial.println();
+  delay(1000);
 }

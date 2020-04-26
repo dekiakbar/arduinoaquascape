@@ -95,7 +95,6 @@ void loop() {
   mainMenuDraw();
   drawCursor();
   operateMainMenu();
-  // homePage();
 }
 
 // This function will generate the 2 menu items that can fit on the screen. They will change as you scroll through your menu. Up and down arrows will indicate your current menu position.
@@ -250,6 +249,9 @@ void operateMainMenu() {
         mainMenuDraw();
         drawCursor();
         activeButton = 1;
+        break;
+      case 4:
+        homePage();
         break;
     }
   }
@@ -593,11 +595,11 @@ void homePage(){
   lcd.print("   Aquaduino   ");
 
   lcd.setCursor(0, 1);
-  lcd.print( now.year(),DEC );
+  lcd.print( now.day(),DEC );
   lcd.print('/');
   lcd.print( now.month(),DEC );
   lcd.print('/');
-  lcd.print( now.day(),DEC );
+  lcd.print( now.year(),DEC );
   lcd.print(' ');
   lcd.print( now.hour(),DEC );
   lcd.print(':');

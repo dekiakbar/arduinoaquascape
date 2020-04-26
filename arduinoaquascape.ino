@@ -1,5 +1,4 @@
 String menuItems[] = {"Set LED On", "Set LED Off", "Feed Now", "LCD Setting", "Set Feeder", "Time LED On", "Time LED Off"};
-String homePageTitle = "";
 // Creates 3 custom characters for the menu display
 byte downArrow[8] = {
   0b00100, //   *
@@ -64,6 +63,12 @@ int max_spin = 2;
 // RTC Setting
 RTC_DS1307 rtc;
 
+// Relay Pin
+int relayLed = 2;
+int relayFilterPump = 3;
+int relayWaterPumpIn = 12;
+int relayWaterPumpOut = 13;
+
 void setup() {
 
   // Initializes serial communication
@@ -89,6 +94,11 @@ void setup() {
   if (! rtc.begin()) {
     while (1);
   }
+
+  pinMode(relayLed, OUTPUT);
+  pinMode(relayFilterPump, OUTPUT);
+  pinMode(relayWaterPumpIn, OUTPUT);
+  pinMode(relayWaterPumpOut, OUTPUT);
 }
 
 void loop() {
@@ -604,7 +614,10 @@ void homePage(){
   lcd.print( now.hour(),DEC );
   lcd.print(':');
   lcd.print( now.minute(),DEC );
+  // lcd.print(':');
+  // lcd.print( now.second(),DEC  );
 
+  //debug
   Serial.print( now.hour(),DEC  );
   Serial.print(':');
   Serial.print( now.minute(),DEC  );
@@ -613,3 +626,35 @@ void homePage(){
   Serial.println();
   delay(1000);
 }
+
+void setRelayLedOn(){
+  digitalWrite(relayLed,LOW);
+}
+
+void setRelayLedOff(){
+  digitalWrite(relayLed,HIGH);
+}
+
+void setFilterPumpOn(){
+  digitalWrite(relayFilterPump,LOW);
+}
+
+void setFilterPumpOff(){
+  digitalWrite(relayFilterPump,HIGH);
+}
+
+void setWaterPumpInOn(){
+  digitalWrite(relayWaterPumpIn,LOW);
+}
+
+void setWaterPumpInOff(){
+  digitalWrite(relayWaterPumpIn,HIGH);
+}
+
+void setWaterPumpOutOn(){
+  digitalWrite(relayWaterPumpOut,LOW);
+}
+
+void setWaterPumpOutOff(){
+  digitalWrite(relayWaterPumpOut,HIGH);
+} 

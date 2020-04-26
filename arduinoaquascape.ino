@@ -1,4 +1,4 @@
-String menuItems[] = {"Set LED On", "Set LED Off", "Feed Now", "LCD Setting", "Set Feeder", "Time LED On", "Time LED Off"};
+String menuItems[] = {"Set LED State", "Set LED Off", "Feed Now", "LCD Setting", "Set Feeder", "Time LED On", "Time LED Off"};
 // Creates 3 custom characters for the menu display
 byte downArrow[8] = {
   0b00100, //   *
@@ -95,10 +95,22 @@ void setup() {
     while (1);
   }
 
+  // Relay pin configuration
   pinMode(relayLed, OUTPUT);
   pinMode(relayFilterPump, OUTPUT);
   pinMode(relayWaterPumpIn, OUTPUT);
   pinMode(relayWaterPumpOut, OUTPUT);
+
+  // Relay LED read EEPROM configuration and set the pin on or off based on configuration
+  if( getRelayLedState() == 0 ){
+    setRelayLedOn();
+  }else if( getRelayLedState() == 1){
+    setRelayLedOff();    
+  }
+
+  digitalWrite(relayFilterPump,HIGH);
+  digitalWrite(relayWaterPumpIn,HIGH);
+  digitalWrite(relayWaterPumpOut,HIGH);
 }
 
 void loop() {
@@ -167,7 +179,6 @@ void drawCursor() {
   }
 }
 
-
 void operateMainMenu() {
   int activeButton = 0;
   while (activeButton == 0) {
@@ -185,7 +196,7 @@ void operateMainMenu() {
         button = 0;
         switch (cursorPosition) { // The case that is selected here is dependent on which menu page you are on and where the cursor is.
           case 0:
-            menuItem4();            
+            setLedStateManually();            
             break;
           case 1:
             menuItem2();
@@ -412,12 +423,22 @@ void feedNow() { // Function executes when you select the 3rd item from main men
   }
 }
 
-void menuItem4() { // Function executes when you select the 4th item from main menu
+void setLedStateManually() { // Function executes when you select the 4th item from main menu
   int activeButton = 0;
 
   lcd.clear();
-  lcd.setCursor(3, 0);
-  lcd.print("Sub Menu 4");
+  lcd.setCursor(0, 0);
+  lcd.print("Set LED State");
+  lcd.setCursor(0, 1);
+  lcd.print("State:");
+
+  if( getRelayLedState() == 0 ){
+    lcd.setCursor(7, 1);
+    lcd.print("On");
+  }else if( getRelayLedState() == 1 ){
+    lcd.setCursor(7, 1);
+    lcd.print("Off");
+  }
 
   while (activeButton == 0) {
     int button;
@@ -428,6 +449,40 @@ void menuItem4() { // Function executes when you select the 4th item from main m
     }
     button = evaluateButton(readKey);
     switch (button) {
+      case 2:
+        if( getRelayLedState() == 0 ){
+          saveRelayLedState(1);
+          setRelayLedOff();
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("Off");
+        }else if( getRelayLedState() == 1){
+          saveRelayLedState(0);
+          setRelayLedOn();
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("On");
+        }
+        break;
+      case 3: 
+        if( getRelayLedState() == 0 ){
+          saveRelayLedState(1);
+          setRelayLedOff();
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("Off");
+        }else if( getRelayLedState() == 1){
+          saveRelayLedState(0);
+          setRelayLedOn();
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("On");
+        }
+        break;
       case 4:  // This case will execute if the "back" button is pressed
         button = 0;
         activeButton = 1;
@@ -633,6 +688,14 @@ void setRelayLedOn(){
 
 void setRelayLedOff(){
   digitalWrite(relayLed,HIGH);
+}
+
+void saveRelayLedState(int val){
+  EEPROM.write(1, val);
+}
+
+int getRelayLedState(){
+  return EEPROM.read(1);
 }
 
 void setFilterPumpOn(){

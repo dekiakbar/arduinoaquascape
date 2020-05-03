@@ -506,8 +506,7 @@ void setLedStateManually() { // Function executes when you select the 4th item f
 
 void setFeederMenu() { // Function executes when you select the 5th item from main menu
   int activeButton = 0;
-  int activeButtonFeed = 0;
-
+  
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(" Set Feed Time ");
@@ -522,6 +521,8 @@ void setFeederMenu() { // Function executes when you select the 5th item from ma
 
   while (activeButton == 0) {
     int button;
+    int activeButtonFeed = 0;
+
     readKey = analogRead(0);
     if (readKey < 790) {
       delay(100);

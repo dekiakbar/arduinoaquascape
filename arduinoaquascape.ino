@@ -44,6 +44,8 @@ int lcdBrightnessAddress = 0;
 int relayLedAddress = 1;
 int feederHoursAddress = 2;
 int feederMinutesAddress = 3;
+int nextFeedHoursAddress = 4;
+int nextFeedMinutesAddress = 5;
 
 // Navigation button variables
 int readKey;
@@ -801,26 +803,42 @@ void homePage(){
   lcd.print("   Aquaduino   ");
 
   lcd.setCursor(0, 1);
-  lcd.print( now.day(),DEC );
-  lcd.print('/');
-  lcd.print( now.month(),DEC );
-  lcd.print('/');
-  lcd.print( now.year(),DEC );
-  lcd.print(' ');
-  lcd.print( now.hour(),DEC );
-  lcd.print(':');
-  lcd.print( now.minute(),DEC );
-  // lcd.print(':');
-  // lcd.print( now.second(),DEC  );
+  
+  if( now.day() < 10 ){
+    lcd.print("0");
+    lcd.print( now.day() );
+    lcd.print('/');
+  }else{
+    lcd.print( now.day() );
+    lcd.print('/');
+  }
 
-  //debug
-  Serial.print( now.hour(),DEC  );
-  Serial.print(':');
-  Serial.print( now.minute(),DEC  );
-  Serial.print(':');
-  Serial.print( now.second(),DEC  );
-  Serial.println();
-  delay(1000);
+  if( now.month() < 10 ){
+    lcd.print("0");
+    lcd.print( now.month() );
+    lcd.print('/');
+  }else{
+    lcd.print( now.month() );
+    lcd.print('/');
+  }
+
+  lcd.print( now.year() );
+  lcd.print(' ');
+  
+  if( now.hour() < 10 ){
+    lcd.print("0");
+    lcd.print( now.hour() );
+    lcd.print(':');
+  }else{
+    lcd.print( now.hour() );
+    lcd.print(':');
+  }
+  if( now.minute() < 10 ){
+    lcd.print("0");
+    lcd.print( now.minute() );
+  }else{
+    lcd.print( now.minute() );
+  }
 }
 
 void setRelayLedOn(){

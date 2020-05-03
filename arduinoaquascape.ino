@@ -1,4 +1,4 @@
-String menuItems[] = {"Set LED State", "Set LED Off", "Feed Now", "LCD Setting", "Set Feeder", "Time LED On", "Time LED Off"};
+String menuItems[] = {"Set LED State", "Feed Now", "Set LED Off", "LCD Setting", "Set Feeder", "Time LED On", "Time LED Off"};
 // Creates 3 custom characters for the menu display
 byte downArrow[8] = {
   0b00100, //   *
@@ -39,6 +39,11 @@ byte menuCursor[8] = {
 #include <ServoTimer2.h>
 #include "RTClib.h"
 
+// EEPROM address
+int lcdBrightnessAddress = 0;
+int relayLedAddress = 1;
+int feederHoursAddress = 2;
+int feederMinutesAddress = 3;
 
 // Navigation button variables
 int readKey;
@@ -53,7 +58,7 @@ int cursorPosition = 0;
 // Setting the LCD shields pins
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 int brightness = 50;
-int lcd_brightness_pin = 10;
+int lcdBrightnessPin = 10;
 
 // Servo Setting
 ServoTimer2 servo;
@@ -69,6 +74,10 @@ int relayFilterPump = 3;
 int relayWaterPumpIn = 12;
 int relayWaterPumpOut = 13;
 
+// Feed Setting
+int feedHrs=1;
+int feedMin=0;
+
 void setup() {
 
   // Initializes serial communication
@@ -81,7 +90,7 @@ void setup() {
   lcd.createChar(1, upArrow);
   lcd.createChar(2, downArrow);
   brightness = getLcdBrightness();
-  analogWrite(lcd_brightness_pin, brightness);
+  analogWrite(lcdBrightnessPin, brightness);
 
   // Servo Pin 
   servo.attach(servo_pin);
@@ -95,7 +104,7 @@ void setup() {
     while (1);
   }
 
-  // Relay pin configuration
+  // Relay pin configuration (set as output)
   pinMode(relayLed, OUTPUT);
   pinMode(relayFilterPump, OUTPUT);
   pinMode(relayWaterPumpIn, OUTPUT);
@@ -107,6 +116,10 @@ void setup() {
   }else if( getRelayLedState() == 1){
     setRelayLedOff();    
   }
+
+  // Get feeder data from EEPROM
+  feedHrs = getFeederHours();
+  feedMin = getFeederMinutes();
 
   digitalWrite(relayFilterPump,HIGH);
   digitalWrite(relayWaterPumpIn,HIGH);
@@ -199,16 +212,16 @@ void operateMainMenu() {
             setLedStateManually();            
             break;
           case 1:
-            menuItem2();
+            feedNow();
             break;
           case 2:
-            feedNow();
+            menuItem2();
             break;
           case 3:
             setBrightnessMenu();
             break;
           case 4:
-            menuItem5();
+            setFeederMenu();
             break;
           case 5:
             menuItem6();
@@ -338,7 +351,7 @@ void setBrightnessMenu() { // Function executes when you select the 2nd item fro
         }
         
         saveLcdBrightness(brightness);
-        analogWrite(lcd_brightness_pin, brightness);
+        analogWrite(lcdBrightnessPin, brightness);
         lcd.setCursor(8, 1);
         lcd.print("    ");
         lcd.setCursor(8, 1);
@@ -356,7 +369,7 @@ void setBrightnessMenu() { // Function executes when you select the 2nd item fro
         }
         
         saveLcdBrightness(brightness);
-        analogWrite(lcd_brightness_pin, brightness);
+        analogWrite(lcdBrightnessPin, brightness);
         lcd.setCursor(8, 1);
         lcd.print("   ");
         lcd.setCursor(8, 1);
@@ -491,12 +504,21 @@ void setLedStateManually() { // Function executes when you select the 4th item f
   }
 }
 
-void menuItem5() { // Function executes when you select the 5th item from main menu
+void setFeederMenu() { // Function executes when you select the 5th item from main menu
   int activeButton = 0;
+  int activeButtonFeed = 0;
 
   lcd.clear();
-  lcd.setCursor(3, 0);
-  lcd.print("Sub Menu 5");
+  lcd.setCursor(0, 0);
+  lcd.print(" Set Feed Time ");
+  lcd.setCursor(1, 1);
+  lcd.print("Hrs:");
+  lcd.setCursor(5, 1);
+  lcd.print(feedHrs);
+  lcd.setCursor(8, 1);
+  lcd.print("Min:");
+  lcd.setCursor(12, 1);
+  lcd.print(feedMin);
 
   while (activeButton == 0) {
     int button;
@@ -507,9 +529,127 @@ void menuItem5() { // Function executes when you select the 5th item from main m
     }
     button = evaluateButton(readKey);
     switch (button) {
+      case 1:
+
+        int buttonFeed;
+        while (activeButtonFeed == 0) {
+          readKey = analogRead(0);
+          if (readKey < 790) {
+            delay(100);
+            readKey = analogRead(0);
+          }
+          buttonFeed = evaluateButton(readKey);
+          switch (buttonFeed) {
+            case 2:
+              if( (feedMin + 1) < 59){
+                feedMin += 1;
+              }else if( feedMin >= 59 ){
+                feedMin = 59;
+              }else{
+                feedMin = 59;
+              }
+              
+              saveFeederMinutes(feedMin);
+              lcd.setCursor(12, 1);
+              lcd.print("  ");
+              lcd.setCursor(12, 1);
+              lcd.print(feedMin);
+
+              if(feedMin < 10){
+                lcd.setCursor(12, 1);
+                lcd.blink();
+              }else{
+                lcd.setCursor(13, 1);
+                lcd.blink();
+              }    
+              break;
+
+            case 3:
+              if( (feedMin - 1) > 0){
+                feedMin -= 1;
+              }else if( feedMin <= 0 ){
+                feedMin = 0;
+              }else{
+                feedMin = 0;
+              }
+              
+              saveFeederMinutes(feedMin);
+              lcd.setCursor(12, 1);
+              lcd.print("  ");
+              lcd.setCursor(12, 1);
+              lcd.print(feedMin);
+
+              if(feedMin < 10){
+                lcd.setCursor(12, 1);
+                lcd.blink();
+              }else{
+                lcd.setCursor(13, 1);
+                lcd.blink();
+              }
+              break;
+
+            case 4:
+              buttonFeed = 0;
+              activeButtonFeed = 1;
+              break;
+          }
+
+        }
+
+        break;
+
+      case 2:
+        if( (feedHrs + 1) < 12){
+          feedHrs += 1;
+        }else if( feedHrs >= 12 ){
+          feedHrs = 12;
+        }else{
+          feedHrs = 12;
+        }
+        
+        saveFeederHours(feedHrs);
+        lcd.setCursor(5, 1);
+        lcd.print("  ");
+        lcd.setCursor(5, 1);
+        lcd.print(feedHrs);
+
+        if(feedHrs < 10){
+          lcd.setCursor(5, 1);
+          lcd.blink();
+        }else{
+          lcd.setCursor(6, 1);
+          lcd.blink();
+        }
+        break;
+
+      case 3:
+        if( (feedHrs - 1) > 0){
+          feedHrs -= 1;
+        }else if( feedHrs <= 0 ){
+          feedHrs = 0;
+        }else{
+          feedHrs = 0;
+        }
+        
+        saveFeederHours(feedHrs);
+        lcd.setCursor(5, 1);
+        lcd.print("  ");
+        lcd.setCursor(5, 1);
+        lcd.print(feedHrs);
+
+        if(feedHrs < 10){
+          lcd.setCursor(5, 1);
+          lcd.blink();
+        }else{
+          lcd.setCursor(6, 1);
+          lcd.blink();
+        }
+
+        break;
       case 4:  // This case will execute if the "back" button is pressed
         button = 0;
         activeButton = 1;
+        lcd.noBlink();
         break;
     }
   }
@@ -636,11 +776,11 @@ void menuItem10() { // Function executes when you select the 10th item from main
 }
 
 void saveLcdBrightness(int val){
-  EEPROM.write(0, val);
+  EEPROM.write(lcdBrightnessAddress, val);
 }
 
 int getLcdBrightness(){
-  return EEPROM.read(0);
+  return EEPROM.read(lcdBrightnessAddress);
 }
 
 void moveServo(){
@@ -691,11 +831,11 @@ void setRelayLedOff(){
 }
 
 void saveRelayLedState(int val){
-  EEPROM.write(1, val);
+  EEPROM.write(relayLedAddress, val);
 }
 
 int getRelayLedState(){
-  return EEPROM.read(1);
+  return EEPROM.read(relayLedAddress);
 }
 
 void setFilterPumpOn(){
@@ -721,3 +861,19 @@ void setWaterPumpOutOn(){
 void setWaterPumpOutOff(){
   digitalWrite(relayWaterPumpOut,HIGH);
 } 
+
+void saveFeederHours(int val){
+  EEPROM.write(feederHoursAddress, val);
+}
+
+int getFeederHours(){
+  return EEPROM.read(feederHoursAddress);
+}
+
+void saveFeederMinutes(int val){
+  EEPROM.write(feederMinutesAddress, val);
+}
+
+int getFeederMinutes(){
+  return EEPROM.read(feederMinutesAddress);
+}

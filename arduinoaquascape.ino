@@ -940,7 +940,7 @@ void calcNextFeedTime(int hours, int minutes){
     minutes = tempMinutes;
   }
   if( hours > 12 ){
-    hours = hours-12;
+    hours = hours%12;
   }
   saveNextFeederMinutes(minutes);
   saveNextFeederHours(hours);

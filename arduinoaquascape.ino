@@ -129,6 +129,7 @@ void setup() {
 }
 
 void loop() {
+  autoFeeder();
   mainMenuDraw();
   drawCursor();
   operateMainMenu();
@@ -197,6 +198,7 @@ void drawCursor() {
 void operateMainMenu() {
   int activeButton = 0;
   while (activeButton == 0) {
+    autoFeeder();
     int button;
     readKey = analogRead(0);
     if (readKey < 790) {
@@ -332,6 +334,7 @@ void setBrightnessMenu() { // Function executes when you select the 2nd item fro
   lcd.print(brightness);
   
   while (activeButton == 0) {
+    autoFeeder();
     int button;
 
     readKey = analogRead(0);
@@ -439,6 +442,7 @@ void feedNow() { // Function executes when you select the 3rd item from main men
 }
 
 void setLedStateManually() { // Function executes when you select the 4th item from main menu
+  autoFeeder();
   int activeButton = 0;
 
   lcd.clear();
@@ -507,6 +511,7 @@ void setLedStateManually() { // Function executes when you select the 4th item f
 }
 
 void setFeederMenu() { // Function executes when you select the 5th item from main menu
+  autoFeeder();
   int activeButton = 0;
   
   lcd.clear();
@@ -553,6 +558,7 @@ void setFeederMenu() { // Function executes when you select the 5th item from ma
               }
               
               saveFeederMinutes(feedMin);
+              calcNextFeedTime(feedHrs, feedMin);
               lcd.setCursor(12, 1);
               lcd.print("  ");
               lcd.setCursor(12, 1);
@@ -577,6 +583,7 @@ void setFeederMenu() { // Function executes when you select the 5th item from ma
               }
               
               saveFeederMinutes(feedMin);
+              calcNextFeedTime(feedHrs, feedMin);
               lcd.setCursor(12, 1);
               lcd.print("  ");
               lcd.setCursor(12, 1);
@@ -611,6 +618,7 @@ void setFeederMenu() { // Function executes when you select the 5th item from ma
         }
         
         saveFeederHours(feedHrs);
+        calcNextFeedTime(feedHrs, feedMin);
         lcd.setCursor(5, 1);
         lcd.print("  ");
         lcd.setCursor(5, 1);
@@ -635,6 +643,7 @@ void setFeederMenu() { // Function executes when you select the 5th item from ma
         }
         
         saveFeederHours(feedHrs);
+        calcNextFeedTime(feedHrs, feedMin);
         lcd.setCursor(5, 1);
         lcd.print("  ");
         lcd.setCursor(5, 1);
@@ -839,6 +848,12 @@ void homePage(){
   }else{
     lcd.print( now.minute() );
   }
+
+  // lcd.print(' ');
+  // lcd.print(getNextFeederHours());
+  // lcd.print(":");
+  // lcd.print(getNextFeederMinutes());
+
 }
 
 void setRelayLedOn(){
@@ -895,4 +910,64 @@ void saveFeederMinutes(int val){
 
 int getFeederMinutes(){
   return EEPROM.read(feederMinutesAddress);
+}
+
+void saveNextFeederHours(int val){
+  EEPROM.write(nextFeedHoursAddress, val);
+}
+
+int getNextFeederHours(){
+  return EEPROM.read(nextFeedHoursAddress);
+}
+
+void saveNextFeederMinutes(int val){
+  EEPROM.write(nextFeedMinutesAddress, val);
+}
+
+int getNextFeederMinutes(){
+  return EEPROM.read(nextFeedMinutesAddress);
+}
+
+void calcNextFeedTime(int hours, int minutes){
+  DateTime now = rtc.now();
+  hours = now.hour() + hours;
+  minutes = now.minute() + minutes;
+  
+  if( minutes > 59 ){
+    int tempMinutes = minutes % 60;
+    int hoursFromMinutes = (minutes - tempMinutes)/60; 
+    hours += hoursFromMinutes;
+    minutes = tempMinutes;
+  }
+  if( hours > 12 ){
+    hours = hours-12;
+  }
+  saveNextFeederMinutes(minutes);
+  saveNextFeederHours(hours);
+}
+
+void autoFeeder(){
+  DateTime now = rtc.now();
+  int hour = now.hour();
+  int minute = now.minute();
+  int nextHour = getNextFeederHours();
+  int nextMinute = getNextFeederMinutes();
+
+  if( nextHour > 0 ){
+    if( hour > 12){
+      hour = hour-12;
+    }
+    if( hour == nextHour ){
+      if( minute == nextMinute ){
+        calcNextFeedTime( getFeederHours(), getFeederMinutes() );
+        moveServo();
+      }
+    }
+  }else{
+    if( minute == nextMinute ){
+      calcNextFeedTime( getFeederHours(), getFeederMinutes() );
+      moveServo();
+    }
+  }
+  
 }

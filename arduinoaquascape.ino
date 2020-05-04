@@ -1,4 +1,4 @@
-String menuItems[] = {"Set LED State", "Feed Now", "Set Filter State", "LCD Setting", "Set Feeder", "Time LED On", "Time LED Off"};
+String menuItems[] = {"Set LED State", "Feed Now", "Set Filter", "LCD Setting", "Auto Feeder", "Auto LED"};
 // Creates 3 custom characters for the menu display
 byte downArrow[8] = {
   0b00100, //   *
@@ -47,6 +47,10 @@ int feederMinutesAddress = 3;
 int nextFeedHoursAddress = 4;
 int nextFeedMinutesAddress = 5;
 int filterPumpAddress = 6;
+int ledOnHoursAddress = 7;
+int ledOnMinutessAddress = 8;
+int ledOffHoursAddress = 9;
+int ledOffMinutesAddress = 9;
 
 // Navigation button variables
 int readKey;
@@ -140,17 +144,10 @@ void loop() {
 void mainMenuDraw() {
   Serial.print(menuPage);
   lcd.clear();
-  
-  if( (menuPage + 1) <= maxMenuPages ){
-    lcd.setCursor(1, 0);
-    lcd.print(menuItems[menuPage]);
-    lcd.setCursor(1, 1);
-    lcd.print(menuItems[menuPage + 1]);
-  }else{
-    lcd.setCursor(1, 0);
-    lcd.print(menuItems[menuPage]);
-  }
-  
+  lcd.setCursor(1, 0);
+  lcd.print(menuItems[menuPage]);
+  lcd.setCursor(1, 1);
+  lcd.print(menuItems[menuPage + 1]);
   if (menuPage == 0) {
     lcd.setCursor(15, 1);
     lcd.write(byte(2));
@@ -229,7 +226,7 @@ void operateMainMenu() {
             setFeederMenu();
             break;
           case 5:
-            menuItem6();
+            autoLed();
             break;
           case 6:
             menuItem7();
@@ -327,7 +324,7 @@ void setBrightnessMenu() { // Function executes when you select the 2nd item fro
   int activeButton = 0;
 
   lcd.clear();
-  lcd.setCursor(1, 0);
+  lcd.setCursor(0, 0);
   lcd.print("Set Brightness");
   lcd.setCursor(0, 1);
   lcd.print("Value : ");
@@ -458,7 +455,7 @@ void feedNowMenu() { // Function executes when you select the 3rd item from main
 
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print(" Feed The Fish! ");
+  lcd.print("Feed The Fish! ");
   lcd.setCursor(0, 1);
   lcd.print(" Press Right! ");
 
@@ -557,7 +554,7 @@ void setFeederMenu() { // Function executes when you select the 5th item from ma
   
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print(" Set Feed Time ");
+  lcd.print("Feed Interval");
   lcd.setCursor(1, 1);
   lcd.print("Hrs:");
   lcd.setCursor(5, 1);
@@ -708,12 +705,20 @@ void setFeederMenu() { // Function executes when you select the 5th item from ma
   }
 }
 
-void menuItem6() { // Function executes when you select the 6th item from main menu
+void autoLed() { // Function executes when you select the 6th item from main menu
   int activeButton = 0;
 
   lcd.clear();
-  lcd.setCursor(3, 0);
-  lcd.print("Sub Menu 6");
+  lcd.setCursor(0, 0);
+  lcd.print("Set LED Time");
+  lcd.setCursor(1, 1);
+  lcd.print("Hrs:");
+  lcd.setCursor(5, 1);
+  // lcd.print(feedHrs);
+  lcd.setCursor(8, 1);
+  lcd.print("Min:");
+  lcd.setCursor(12, 1);
+  // lcd.print(feedMin);
 
   while (activeButton == 0) {
     int button;

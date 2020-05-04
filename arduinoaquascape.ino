@@ -1,4 +1,4 @@
-String menuItems[] = {"Set LED State", "Feed Now", "Set LED Off", "LCD Setting", "Set Feeder", "Time LED On", "Time LED Off"};
+String menuItems[] = {"Set LED State", "Feed Now", "Set Filter State", "LCD Setting", "Set Feeder", "Time LED On", "Time LED Off"};
 // Creates 3 custom characters for the menu display
 byte downArrow[8] = {
   0b00100, //   *
@@ -46,6 +46,7 @@ int feederHoursAddress = 2;
 int feederMinutesAddress = 3;
 int nextFeedHoursAddress = 4;
 int nextFeedMinutesAddress = 5;
+int filterPumpAddress = 6;
 
 // Navigation button variables
 int readKey;
@@ -123,7 +124,7 @@ void setup() {
   feedHrs = getFeederHours();
   feedMin = getFeederMinutes();
 
-  digitalWrite(relayFilterPump,HIGH);
+  digitalWrite(relayFilterPump,getFilterPumpState());
   digitalWrite(relayWaterPumpIn,HIGH);
   digitalWrite(relayWaterPumpOut,HIGH);
 }
@@ -216,10 +217,10 @@ void operateMainMenu() {
             setLedStateManually();            
             break;
           case 1:
-            feedNow();
+            feedNowMenu();
             break;
           case 2:
-            menuItem2();
+            setFilterPumpState();
             break;
           case 3:
             setBrightnessMenu();
@@ -388,12 +389,22 @@ void setBrightnessMenu() { // Function executes when you select the 2nd item fro
   }
 }
 
-void menuItem2() { // Function executes when you select the 2nd item from main menu
+void setFilterPumpState() { // Function executes when you select the 2nd item from main menu
   int activeButton = 0;
 
   lcd.clear();
-  lcd.setCursor(3, 0);
-  lcd.print("Sub Menu 2");
+  lcd.setCursor(0, 0);
+  lcd.print("Set Filter State");
+  lcd.setCursor(0, 1);
+  lcd.print("State:");
+
+  if( getFilterPumpState() == 0 ){
+    lcd.setCursor(7, 1);
+    lcd.print("On");
+  }else if( getFilterPumpState() == 1 ){
+    lcd.setCursor(7, 1);
+    lcd.print("Off");
+  }
 
   while (activeButton == 0) {
     int button;
@@ -404,6 +415,36 @@ void menuItem2() { // Function executes when you select the 2nd item from main m
     }
     button = evaluateButton(readKey);
     switch (button) {
+      case 2:
+        if( getFilterPumpState() == 0 ){
+          setFilterPumpOff();
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("Off");
+        }else if( getFilterPumpState() == 1){
+          setFilterPumpOn();
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("On");
+        }
+        break;
+      case 3: 
+        if( getFilterPumpState() == 0 ){
+          setFilterPumpOff();
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("Off");
+        }else if( getFilterPumpState() == 1){
+          setFilterPumpOn();
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("On");
+        }
+        break;
       case 4:  // This case will execute if the "back" button is pressed
         button = 0;
         activeButton = 1;
@@ -412,7 +453,7 @@ void menuItem2() { // Function executes when you select the 2nd item from main m
   }
 }
 
-void feedNow() { // Function executes when you select the 3rd item from main menu
+void feedNowMenu() { // Function executes when you select the 3rd item from main menu
   int activeButton = 0;
 
   lcd.clear();
@@ -874,10 +915,20 @@ int getRelayLedState(){
 
 void setFilterPumpOn(){
   digitalWrite(relayFilterPump,LOW);
+  saveFilterPumpState(0);
 }
 
 void setFilterPumpOff(){
   digitalWrite(relayFilterPump,HIGH);
+  saveFilterPumpState(1);
+}
+
+void saveFilterPumpState(int val){
+  EEPROM.write(filterPumpAddress, val);
+}
+
+int getFilterPumpState(){
+  return EEPROM.read(filterPumpAddress);
 }
 
 void setWaterPumpInOn(){

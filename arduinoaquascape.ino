@@ -1,4 +1,4 @@
-String menuItems[] = {"Set LED State", "Feed Now", "Set Filter", "LCD Setting", "Auto Feeder", "Auto LED On","Auto LED Off","WOW","Aw"};
+String menuItems[] = {"Set LED State", "Feed Now", "Set Filter", "LCD Setting", "Auto Feeder", "Auto LED On","Auto LED Off"};
 // Creates 3 custom characters for the menu display
 byte downArrow[8] = {
   0b00100, //   *
@@ -59,7 +59,7 @@ int savedDistance = 0;
 
 // Menu control variables
 int menuPage = 0;
-int maxMenuPages = round(((sizeof(menuItems) / sizeof(String)) / 2) + .5);
+int maxMenuPages = round(((sizeof(menuItems) / sizeof(String)) / 2) + .5)+1;
 int cursorPosition = 0;
 
 // Setting the LCD shields pins
@@ -243,15 +243,6 @@ void operateMainMenu() {
           case 6:
             setAutoLedOff();
             break;
-          case 7:
-            menuItem8();
-            break;
-          case 8:
-            menuItem9();
-            break;
-          case 9:
-            menuItem10();
-            break;
         }
         activeButton = 1;
         mainMenuDraw();
@@ -318,18 +309,6 @@ int evaluateButton(int x) {
     result = 4; // left
   }
   return result;
-}
-
-// If there are common usage instructions on more than 1 of your menu items you can call this function from the sub
-// menus to make things a little more simplified. If you don't have common instructions or verbage on multiple menus
-// I would just delete this void. You must also delete the drawInstructions()function calls from your sub menu functions.
-void drawInstructions() {
-  lcd.setCursor(0, 1); // Set cursor to the bottom line
-  lcd.print("Use ");
-  lcd.write(byte(1)); // Up arrow
-  lcd.print("/");
-  lcd.write(byte(2)); // Down arrow
-  lcd.print(" buttons");
 }
 
 void setBrightnessMenu() { // Function executes when you select the 2nd item from main menu
@@ -1012,78 +991,6 @@ void setAutoLedOff() { // Function executes when you select the 7th item from ma
         button = 0;
         activeButton = 1;
         lcd.noBlink();
-        break;
-    }
-  }
-}
-
-void menuItem8() { // Function executes when you select the 8th item from main menu
-  int activeButton = 0;
-
-  lcd.clear();
-  lcd.setCursor(3, 0);
-  lcd.print("Sub Menu 8");
-
-  while (activeButton == 0) {
-    int button;
-    readKey = analogRead(0);
-    if (readKey < 790) {
-      delay(100);
-      readKey = analogRead(0);
-    }
-    button = evaluateButton(readKey);
-    switch (button) {
-      case 4:  // This case will execute if the "back" button is pressed
-        button = 0;
-        activeButton = 1;
-        break;
-    }
-  }
-}
-
-void menuItem9() { // Function executes when you select the 9th item from main menu
-  int activeButton = 0;
-
-  lcd.clear();
-  lcd.setCursor(3, 0);
-  lcd.print("Sub Menu 9");
-
-  while (activeButton == 0) {
-    int button;
-    readKey = analogRead(0);
-    if (readKey < 790) {
-      delay(100);
-      readKey = analogRead(0);
-    }
-    button = evaluateButton(readKey);
-    switch (button) {
-      case 4:  // This case will execute if the "back" button is pressed
-        button = 0;
-        activeButton = 1;
-        break;
-    }
-  }
-}
-
-void menuItem10() { // Function executes when you select the 10th item from main menu
-  int activeButton = 0;
-
-  lcd.clear();
-  lcd.setCursor(3, 0);
-  lcd.print("Sub Menu 10");
-
-  while (activeButton == 0) {
-    int button;
-    readKey = analogRead(0);
-    if (readKey < 790) {
-      delay(100);
-      readKey = analogRead(0);
-    }
-    button = evaluateButton(readKey);
-    switch (button) {
-      case 4:  // This case will execute if the "back" button is pressed
-        button = 0;
-        activeButton = 1;
         break;
     }
   }

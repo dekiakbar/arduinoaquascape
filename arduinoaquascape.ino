@@ -1,4 +1,4 @@
-String menuItems[] = {"Set LED State", "Feed Now", "Set Filter", "LCD Setting", "Auto Feeder", "Auto LED On","Auto LED Off"};
+String menuItems[] = {"Set LED State", "Feed Now", "Pump In State", "Pump Out State", "Set Filter", "LCD Setting", "Auto Feeder", "Auto LED On","Auto LED Off"};
 // Creates 3 custom characters for the menu display
 byte downArrow[8] = {
   0b00100, //   *
@@ -59,7 +59,7 @@ int savedDistance = 0;
 
 // Menu control variables
 int menuPage = 0;
-int maxMenuPages = round(((sizeof(menuItems) / sizeof(String)) / 2) + .5)+1;
+int maxMenuPages = round(((sizeof(menuItems) / sizeof(String)) / 2) + .5)+2;
 int cursorPosition = 0;
 
 // Setting the LCD shields pins
@@ -85,11 +85,15 @@ int relayWaterPumpOut = 13;
 int feedHrs=1;
 int feedMin=0;
 
-// Auto Led On
+// Auto Led 
 int autoLedOnHrs = 8;
 int autoLedOnMin = 0;
 int autoLedOffHrs = 16;
 int autoLedOffMin = 0;
+
+// Water Pump In/Out State
+int waterPumpInState = 1;
+int waterPumpOutState = 1;
 
 void setup() {
 
@@ -141,8 +145,8 @@ void setup() {
   autoLedOffMin = getAutoLedOffMinutes();
 
   digitalWrite(relayFilterPump,getFilterPumpState());
-  digitalWrite(relayWaterPumpIn,HIGH);
-  digitalWrite(relayWaterPumpOut,HIGH);
+  digitalWrite(relayWaterPumpIn,waterPumpInState);
+  digitalWrite(relayWaterPumpOut,waterPumpOutState);
 }
 
 void loop() {
@@ -229,18 +233,24 @@ void operateMainMenu() {
             feedNowMenu();
             break;
           case 2:
-            setFilterPumpState();
+            waterPumpInStateMenu();
             break;
           case 3:
-            setBrightnessMenu();
+            waterPumpOutStateMenu();
             break;
           case 4:
-            setFeederMenu();
+            setFilterPumpState();
             break;
           case 5:
-            setAutoLedOn();
+            setBrightnessMenu();
             break;
           case 6:
+            setFeederMenu();
+            break;
+          case 7:
+            setAutoLedOn();
+            break;
+          case 8:
             setAutoLedOff();
             break;
         }
@@ -426,6 +436,142 @@ void setFilterPumpState() { // Function executes when you select the 2nd item fr
           lcd.print("Off");
         }else if( getFilterPumpState() == 1){
           setFilterPumpOn();
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("On");
+        }
+        break;
+      case 4:  // This case will execute if the "back" button is pressed
+        button = 0;
+        activeButton = 1;
+        break;
+    }
+  }
+}
+
+void waterPumpInStateMenu() { // Function executes when you select the 2nd item from main menu
+  int activeButton = 0;
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Pump In State");
+  lcd.setCursor(0, 1);
+  lcd.print("State:");
+
+  if( waterPumpInState == 0 ){
+    lcd.setCursor(7, 1);
+    lcd.print("On");
+  }else if( waterPumpInState == 1 ){
+    lcd.setCursor(7, 1);
+    lcd.print("Off");
+  }
+
+  while (activeButton == 0) {
+    int button;
+    readKey = analogRead(0);
+    if (readKey < 790) {
+      delay(100);
+      readKey = analogRead(0);
+    }
+    button = evaluateButton(readKey);
+    switch (button) {
+      case 2:
+        if( waterPumpInState == 0 ){
+          waterPumpInState = 1;
+          digitalWrite(relayWaterPumpIn,waterPumpInState);
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("Off");
+        }else if( waterPumpInState == 1){
+          waterPumpInState = 0;
+          digitalWrite(relayWaterPumpIn,waterPumpInState);
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("On");
+        }
+        break;
+      case 3: 
+        if( waterPumpInState == 0 ){
+          waterPumpInState = 1;
+          digitalWrite(relayWaterPumpIn,waterPumpInState);
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("Off");
+        }else if( waterPumpInState == 1){
+          waterPumpInState = 0;
+          digitalWrite(relayWaterPumpIn,waterPumpInState);
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("On");
+        }
+        break;
+      case 4:  // This case will execute if the "back" button is pressed
+        button = 0;
+        activeButton = 1;
+        break;
+    }
+  }
+}
+
+void waterPumpOutStateMenu() { // Function executes when you select the 2nd item from main menu
+  int activeButton = 0;
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Pump Out State");
+  lcd.setCursor(0, 1);
+  lcd.print("State:");
+
+  if( waterPumpOutState == 0 ){
+    lcd.setCursor(7, 1);
+    lcd.print("On");
+  }else if( waterPumpOutState == 1 ){
+    lcd.setCursor(7, 1);
+    lcd.print("Off");
+  }
+
+  while (activeButton == 0) {
+    int button;
+    readKey = analogRead(0);
+    if (readKey < 790) {
+      delay(100);
+      readKey = analogRead(0);
+    }
+    button = evaluateButton(readKey);
+    switch (button) {
+      case 2:
+        if( waterPumpOutState == 0 ){
+          waterPumpOutState = 1;
+          digitalWrite(relayWaterPumpOut,waterPumpOutState);
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("Off");
+        }else if( waterPumpOutState == 1){
+          waterPumpOutState = 0;
+          digitalWrite(relayWaterPumpOut,waterPumpOutState);
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("On");
+        }
+        break;
+      case 3: 
+        if( waterPumpOutState == 0 ){
+          waterPumpOutState = 1;
+          digitalWrite(relayWaterPumpOut,waterPumpOutState);
+          lcd.setCursor(7, 1);
+          lcd.print("    ");
+          lcd.setCursor(7, 1);
+          lcd.print("Off");
+        }else if( waterPumpOutState == 1){
+          waterPumpOutState = 0;
+          digitalWrite(relayWaterPumpOut,waterPumpOutState);
           lcd.setCursor(7, 1);
           lcd.print("    ");
           lcd.setCursor(7, 1);

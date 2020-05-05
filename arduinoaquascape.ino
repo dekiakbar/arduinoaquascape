@@ -146,7 +146,7 @@ void setup() {
 }
 
 void loop() {
-  autoFeeder();
+  autoCheck();
   mainMenuDraw();
   drawCursor();
   operateMainMenu();
@@ -208,7 +208,7 @@ void drawCursor() {
 void operateMainMenu() {
   int activeButton = 0;
   while (activeButton == 0) {
-    autoFeeder();
+    autoCheck();
     int button;
     readKey = analogRead(0);
     if (readKey < 790) {
@@ -323,7 +323,6 @@ void setBrightnessMenu() { // Function executes when you select the 2nd item fro
   lcd.print(brightness);
   
   while (activeButton == 0) {
-    autoFeeder();
     int button;
 
     readKey = analogRead(0);
@@ -471,7 +470,6 @@ void feedNowMenu() { // Function executes when you select the 3rd item from main
 }
 
 void setLedStateManually() { // Function executes when you select the 4th item from main menu
-  autoFeeder();
   int activeButton = 0;
 
   lcd.clear();
@@ -540,7 +538,6 @@ void setLedStateManually() { // Function executes when you select the 4th item f
 }
 
 void setFeederMenu() { // Function executes when you select the 5th item from main menu
-  autoFeeder();
   int activeButton = 0;
   
   lcd.clear();
@@ -1113,7 +1110,6 @@ int getAutoLedOffMinutes(){
   return EEPROM.read(AutoLedOffMinutesAddress);
 }
 
-
 void setFilterPumpOn(){
   digitalWrite(relayFilterPump,LOW);
   saveFilterPumpState(0);
@@ -1222,4 +1218,20 @@ void autoFeeder(){
     }
   }
   
+}
+
+void autoLed(){
+  DateTime now = rtc.now();
+  if( now.hour() == getAutoLedOnHours() && now.minute() == getAutoLedOnMinutes() ){
+    saveRelayLedState(0);
+    setRelayLedOn();
+  }else if( now.hour() == getAutoLedOffHours() && now.minute() == getAutoLedOffMinutes() ){
+    saveRelayLedState(1);
+    setRelayLedOff();
+  }
+}
+
+void autoCheck(){
+  autoFeeder();
+  autoLed();
 }

@@ -1,4 +1,4 @@
-String menuItems[] = {"Set LED State", "Feed Now", "Set Filter", "LCD Setting", "Auto Feeder", "Auto LED"};
+String menuItems[] = {"Set LED State", "Feed Now", "Set Filter", "LCD Setting", "Auto Feeder", "Auto LED On","Auto LED Off","WOW","Aw"};
 // Creates 3 custom characters for the menu display
 byte downArrow[8] = {
   0b00100, //   *
@@ -47,10 +47,10 @@ int feederMinutesAddress = 3;
 int nextFeedHoursAddress = 4;
 int nextFeedMinutesAddress = 5;
 int filterPumpAddress = 6;
-int ledOnHoursAddress = 7;
-int ledOnMinutessAddress = 8;
-int ledOffHoursAddress = 9;
-int ledOffMinutesAddress = 9;
+int AutoLedOnHoursAddress = 7;
+int AutoLedOnMinutesAddress = 8;
+int AutoLedOffHoursAddress = 9;
+int AutoLedOffMinutesAddress = 10;
 
 // Navigation button variables
 int readKey;
@@ -84,6 +84,12 @@ int relayWaterPumpOut = 13;
 // Feed Setting
 int feedHrs=1;
 int feedMin=0;
+
+// Auto Led On
+int autoLedOnHrs = 8;
+int autoLedOnMin = 0;
+int autoLedOffHrs = 16;
+int autoLedOffMin = 0;
 
 void setup() {
 
@@ -127,6 +133,12 @@ void setup() {
   // Get feeder data from EEPROM
   feedHrs = getFeederHours();
   feedMin = getFeederMinutes();
+
+  // Get Led On data from EEPROM
+  autoLedOnHrs = getAutoLedOnHours();
+  autoLedOnMin = getAutoLedOnMinutes();
+  autoLedOffHrs = getAutoLedOffHours();
+  autoLedOffMin = getAutoLedOffMinutes();
 
   digitalWrite(relayFilterPump,getFilterPumpState());
   digitalWrite(relayWaterPumpIn,HIGH);
@@ -226,10 +238,10 @@ void operateMainMenu() {
             setFeederMenu();
             break;
           case 5:
-            autoLed();
+            setAutoLedOn();
             break;
           case 6:
-            menuItem7();
+            setAutoLedOff();
             break;
           case 7:
             menuItem8();
@@ -705,22 +717,23 @@ void setFeederMenu() { // Function executes when you select the 5th item from ma
   }
 }
 
-void autoLed() { // Function executes when you select the 6th item from main menu
+void setAutoLedOn() { // Function executes when you select the 6th item from main menu
   int activeButton = 0;
 
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Set LED Time");
+  lcd.print("Set LED On Time");
   lcd.setCursor(1, 1);
   lcd.print("Hrs:");
   lcd.setCursor(5, 1);
-  // lcd.print(feedHrs);
+  lcd.print(autoLedOnHrs);
   lcd.setCursor(8, 1);
   lcd.print("Min:");
   lcd.setCursor(12, 1);
-  // lcd.print(feedMin);
+  lcd.print(autoLedOnMin);
 
   while (activeButton == 0) {
+    int activeButtonAutoLedOn = 0;
     int button;
     readKey = analogRead(0);
     if (readKey < 790) {
@@ -729,22 +742,146 @@ void autoLed() { // Function executes when you select the 6th item from main men
     }
     button = evaluateButton(readKey);
     switch (button) {
+      case 1:
+        int buttonAutoLed;
+        while (activeButtonAutoLedOn == 0) {
+          readKey = analogRead(0);
+          if (readKey < 790) {
+            delay(100);
+            readKey = analogRead(0);
+          }
+          buttonAutoLed = evaluateButton(readKey);
+          switch (buttonAutoLed) {
+            case 2:
+              if( (autoLedOnMin + 1) < 59){
+                autoLedOnMin += 1;
+              }else if( autoLedOnMin >= 59 ){
+                autoLedOnMin = 59;
+              }else{
+                autoLedOnMin = 59;
+              }
+              
+              saveAutoLedOnMinutes(autoLedOnMin);
+              lcd.setCursor(12, 1);
+              lcd.print("  ");
+              lcd.setCursor(12, 1);
+              lcd.print(autoLedOnMin);
+
+              if(autoLedOnMin < 10){
+                lcd.setCursor(12, 1);
+                lcd.blink();
+              }else{
+                lcd.setCursor(13, 1);
+                lcd.blink();
+              }    
+              break;
+
+            case 3:
+              if( (autoLedOnMin - 1) > 0){
+                autoLedOnMin -= 1;
+              }else if( autoLedOnMin <= 0 ){
+                autoLedOnMin = 0;
+              }else{
+                autoLedOnMin = 0;
+              }
+              
+              saveAutoLedOnMinutes(autoLedOnMin);
+              lcd.setCursor(12, 1);
+              lcd.print("  ");
+              lcd.setCursor(12, 1);
+              lcd.print(autoLedOnMin);
+
+              if(autoLedOnMin < 10){
+                lcd.setCursor(12, 1);
+                lcd.blink();
+              }else{
+                lcd.setCursor(13, 1);
+                lcd.blink();
+              }
+              break;
+
+            case 4:
+              buttonAutoLed = 0;
+              activeButtonAutoLedOn = 1;
+              break;
+          }
+
+        }
+
+        break;
+      case 2:
+        if( (autoLedOnHrs + 1) < 24){
+          autoLedOnHrs += 1;
+        }else if( autoLedOnHrs >= 23 ){
+          autoLedOnHrs = 23;
+        }else{
+          autoLedOnHrs = 23;
+        }
+        
+        saveAutoLedOnHours(autoLedOnHrs);
+        lcd.setCursor(5, 1);
+        lcd.print("  ");
+        lcd.setCursor(5, 1);
+        lcd.print(autoLedOnHrs);
+
+        if(autoLedOnHrs < 10){
+          lcd.setCursor(5, 1);
+          lcd.blink();
+        }else{
+          lcd.setCursor(6, 1);
+          lcd.blink();
+        }
+        break;
+      case 3:
+        if( (autoLedOnHrs - 1) >= 0){
+          autoLedOnHrs -= 1;
+        }else if( autoLedOnHrs < 0 ){
+          autoLedOnHrs = 0;
+        }else{
+          autoLedOnHrs = 0;
+        }
+        
+        saveAutoLedOnHours(autoLedOnHrs);
+        lcd.setCursor(5, 1);
+        lcd.print("  ");
+        lcd.setCursor(5, 1);
+        lcd.print(autoLedOnHrs);
+
+        if(autoLedOnHrs < 10){
+          lcd.setCursor(5, 1);
+          lcd.blink();
+        }else{
+          lcd.setCursor(6, 1);
+          lcd.blink();
+        }
+
+        break;
       case 4:  // This case will execute if the "back" button is pressed
         button = 0;
         activeButton = 1;
+        lcd.noBlink();
         break;
     }
   }
 }
 
-void menuItem7() { // Function executes when you select the 7th item from main menu
+void setAutoLedOff() { // Function executes when you select the 7th item from main menu
   int activeButton = 0;
 
   lcd.clear();
-  lcd.setCursor(3, 0);
-  lcd.print("Sub Menu 7");
+  lcd.setCursor(0, 0);
+  lcd.print("Set LED Off Time");
+  lcd.setCursor(1, 1);
+  lcd.print("Hrs:");
+  lcd.setCursor(5, 1);
+  lcd.print(autoLedOffHrs);
+  lcd.setCursor(8, 1);
+  lcd.print("Min:");
+  lcd.setCursor(12, 1);
+  lcd.print(autoLedOffMin);
 
   while (activeButton == 0) {
+    int activeButtonAutoLedOff = 0;
     int button;
     readKey = analogRead(0);
     if (readKey < 790) {
@@ -753,9 +890,128 @@ void menuItem7() { // Function executes when you select the 7th item from main m
     }
     button = evaluateButton(readKey);
     switch (button) {
+      case 1:
+        int buttonAutoLed;
+        while (activeButtonAutoLedOff == 0) {
+          readKey = analogRead(0);
+          if (readKey < 790) {
+            delay(100);
+            readKey = analogRead(0);
+          }
+          buttonAutoLed = evaluateButton(readKey);
+          switch (buttonAutoLed) {
+            case 2:
+              if( (autoLedOffMin + 1) < 59){
+                autoLedOffMin += 1;
+              }else if( autoLedOffMin >= 59 ){
+                autoLedOffMin = 59;
+              }else{
+                autoLedOffMin = 59;
+              }
+              
+              saveAutoLedOffMinutes(autoLedOffMin);
+              saveAutoLedOffHours(autoLedOffHrs);
+              lcd.setCursor(12, 1);
+              lcd.print("  ");
+              lcd.setCursor(12, 1);
+              lcd.print(autoLedOffMin);
+
+              if(autoLedOffMin < 10){
+                lcd.setCursor(12, 1);
+                lcd.blink();
+              }else{
+                lcd.setCursor(13, 1);
+                lcd.blink();
+              }    
+              break;
+
+            case 3:
+              if( (autoLedOffMin - 1) > 0){
+                autoLedOffMin -= 1;
+              }else if( autoLedOffMin <= 0 ){
+                autoLedOffMin = 0;
+              }else{
+                autoLedOffMin = 0;
+              }
+              
+              saveAutoLedOffMinutes(autoLedOffMin);
+              saveAutoLedOffHours(autoLedOffHrs);
+              lcd.setCursor(12, 1);
+              lcd.print("  ");
+              lcd.setCursor(12, 1);
+              lcd.print(autoLedOffMin);
+
+              if(autoLedOffMin < 10){
+                lcd.setCursor(12, 1);
+                lcd.blink();
+              }else{
+                lcd.setCursor(13, 1);
+                lcd.blink();
+              }
+              break;
+
+            case 4:
+              buttonAutoLed = 0;
+              activeButtonAutoLedOff = 1;
+              break;
+          }
+
+        }
+
+        break;
+      case 2:
+        if( (autoLedOffHrs + 1) < 24){
+          autoLedOffHrs += 1;
+        }else if( autoLedOffHrs >= 23 ){
+          autoLedOffHrs = 23;
+        }else{
+          autoLedOffHrs = 23;
+        }
+        
+        saveAutoLedOffMinutes(autoLedOffMin);
+        saveAutoLedOffHours(autoLedOffHrs);
+        lcd.setCursor(5, 1);
+        lcd.print("  ");
+        lcd.setCursor(5, 1);
+        lcd.print(autoLedOffHrs);
+
+        if(autoLedOffHrs < 10){
+          lcd.setCursor(5, 1);
+          lcd.blink();
+        }else{
+          lcd.setCursor(6, 1);
+          lcd.blink();
+        }
+        break;
+      case 3:
+        if( (autoLedOffHrs - 1) >= 0){
+          autoLedOffHrs -= 1;
+        }else if( autoLedOffHrs < 0 ){
+          autoLedOffHrs = 0;
+        }else{
+          autoLedOffHrs = 0;
+        }
+        
+        saveAutoLedOffMinutes(autoLedOffMin);
+        saveAutoLedOffHours(autoLedOffHrs);
+        lcd.setCursor(5, 1);
+        lcd.print("  ");
+        lcd.setCursor(5, 1);
+        lcd.print(autoLedOffHrs);
+
+        if(autoLedOffHrs < 10){
+          lcd.setCursor(5, 1);
+          lcd.blink();
+        }else{
+          lcd.setCursor(6, 1);
+          lcd.blink();
+        }
+
+        break;
       case 4:  // This case will execute if the "back" button is pressed
         button = 0;
         activeButton = 1;
+        lcd.noBlink();
         break;
     }
   }
@@ -896,9 +1152,9 @@ void homePage(){
   }
 
   // lcd.print(' ');
-  // lcd.print(getNextFeederHours());
+  // lcd.print(getAutoLedOffHours());
   // lcd.print(":");
-  // lcd.print(getNextFeederMinutes());
+  // lcd.print(getAutoLedOffMinutes());
 
 }
 
@@ -917,6 +1173,39 @@ void saveRelayLedState(int val){
 int getRelayLedState(){
   return EEPROM.read(relayLedAddress);
 }
+
+void saveAutoLedOnHours(int val){
+  EEPROM.write(AutoLedOnHoursAddress, val);
+}
+
+int getAutoLedOnHours(){
+  return EEPROM.read(AutoLedOnHoursAddress);
+}
+
+void saveAutoLedOnMinutes(int val){
+  EEPROM.write(AutoLedOnMinutesAddress, val);
+}
+
+int getAutoLedOnMinutes(){
+  return EEPROM.read(AutoLedOnMinutesAddress);
+}
+
+void saveAutoLedOffHours(int val){
+  EEPROM.write(AutoLedOffHoursAddress, val);
+}
+
+int getAutoLedOffHours(){
+  return EEPROM.read(AutoLedOffHoursAddress);
+}
+
+void saveAutoLedOffMinutes(int val){
+  EEPROM.write(AutoLedOffMinutesAddress, val);
+}
+
+int getAutoLedOffMinutes(){
+  return EEPROM.read(AutoLedOffMinutesAddress);
+}
+
 
 void setFilterPumpOn(){
   digitalWrite(relayFilterPump,LOW);

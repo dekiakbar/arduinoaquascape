@@ -70,7 +70,7 @@ int lcdBrightnessPin = 10;
 // Servo Setting
 ServoTimer2 servo;
 int servo_pin= 11;
-int max_spin = 2;
+int max_spin = 3;
 
 // RTC Setting
 RTC_DS1307 rtc;
@@ -108,9 +108,6 @@ void setup() {
   lcd.createChar(2, downArrow);
   brightness = getLcdBrightness();
   analogWrite(lcdBrightnessPin, brightness);
-
-  // Servo Pin 
-  servo.attach(servo_pin);
 
   // RTC setup
   // The following code will set the RTC same as computer time, Just use this code once and if your RTC is not set before.
@@ -1148,12 +1145,14 @@ int getLcdBrightness(){
 }
 
 void moveServo(){
+  servo.attach(servo_pin);
   for (int i = 0; i < max_spin; i++){
-    servo.write(544);
-    delay(1000);
+    servo.write(700);
+    delay(300);
     servo.write(2400);
-    delay(1000);
+    delay(300);
   }
+  servo.detach();
 }
 
 void homePage(){
@@ -1200,11 +1199,6 @@ void homePage(){
   }else{
     lcd.print( now.minute() );
   }
-
-  // lcd.print(' ');
-  // lcd.print(getAutoLedOffHours());
-  // lcd.print(":");
-  // lcd.print(getAutoLedOffMinutes());
 
 }
 

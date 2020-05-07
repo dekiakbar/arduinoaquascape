@@ -208,6 +208,7 @@ void drawCursor() {
 
 void operateMainMenu() {
   int activeButton = 0;
+  int showHomePage = 0;
   while (activeButton == 0) {
     autoCheck();
     int button;
@@ -297,7 +298,26 @@ void operateMainMenu() {
         activeButton = 1;
         break;
       case 4:
-        homePage();
+        showHomePage = 1;
+        while( showHomePage == 1 ){
+          autoCheck();
+          int homePageButton;
+          int pressedKey;
+          pressedKey = analogRead(0);
+          if (pressedKey < 790) {
+            delay(100);
+            pressedKey = analogRead(0);
+          }
+          homePageButton = evaluateButton(pressedKey);
+          switch (homePageButton) {
+            case 0 :
+              showStatus(10000,5000,5000,5000);
+              break;
+            case 2:
+              showHomePage = 0;
+              break;
+          }
+        }
         break;
     }
   }
@@ -1155,7 +1175,7 @@ void moveServo(){
   servo.detach();
 }
 
-void homePage(){
+void showTime(){
   DateTime now = rtc.now();
 
   lcd.clear();
@@ -1200,6 +1220,58 @@ void homePage(){
     lcd.print( now.minute() );
   }
 
+}
+
+void showNextFeeder(){
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Next Feeder Time");
+  lcd.setCursor(0, 1);
+  lcd.print("Hrs:");
+  lcd.print(getNextFeederHours());
+  lcd.print(" ");
+  lcd.print("Min:");
+  lcd.print(getFeederMinutes());
+}
+
+void showTimeLedOn(){
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Led On Time");
+  lcd.setCursor(0, 1);
+  lcd.print("Hrs:");
+  lcd.print(getAutoLedOnHours());
+  lcd.print(" ");
+  lcd.print("Min:");
+  lcd.print(getAutoLedOnMinutes());
+}
+
+void showTimeLedOff(){
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Led Off Time");
+  lcd.setCursor(0, 1);
+  lcd.print("Hrs:");
+  lcd.print(getAutoLedOffHours());
+  lcd.print(" ");
+  lcd.print("Min:");
+  lcd.print(getAutoLedOffMinutes());
+}
+
+void showStatus(int timeDelay,int nextFeedDelay, int timeLedOnDelay, int timeLedOffDelay){
+  autoCheck();
+  showTime();
+  delay(timeDelay);
+  autoCheck();
+  showNextFeeder();
+  delay(nextFeedDelay);
+  autoCheck();
+  showTimeLedOn();
+  delay(timeLedOnDelay);
+  autoCheck();
+  showTimeLedOff();
+  delay(timeLedOffDelay);
+  autoCheck();
 }
 
 void setRelayLedOn(){

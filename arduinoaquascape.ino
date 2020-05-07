@@ -1231,7 +1231,7 @@ void showNextFeeder(){
   lcd.print(getNextFeederHours());
   lcd.print(" ");
   lcd.print("Min:");
-  lcd.print(getFeederMinutes());
+  lcd.print(getNextFeederMinutes());
 }
 
 void showTimeLedOn(){

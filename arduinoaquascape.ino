@@ -1,36 +1,36 @@
 String menuItems[] = {"Set LED State", "Feed Now", "Pump In State", "Pump Out State", "Set Filter", "LCD Setting", "Auto Feeder", "Auto LED On","Auto LED Off"};
-// Creates 3 custom characters for the menu display
+
 byte downArrow[8] = {
-  0b00100, //   *
-  0b00100, //   *
-  0b00100, //   *
-  0b00100, //   *
-  0b00100, //   *
-  0b10101, // * * *
-  0b01110, //  ***
-  0b00100  //   *
+  0b00100,
+  0b00100,
+  0b00100,
+  0b00100,
+  0b00100,
+  0b10101,
+  0b01110,
+  0b00100
 };
 
 byte upArrow[8] = {
-  0b00100, //   *
-  0b01110, //  ***
-  0b10101, // * * *
-  0b00100, //   *
-  0b00100, //   *
-  0b00100, //   *
-  0b00100, //   *
-  0b00100  //   *
+  0b00100,
+  0b01110,
+  0b10101,
+  0b00100,
+  0b00100,
+  0b00100,
+  0b00100,
+  0b00100 
 };
 
 byte menuCursor[8] = {
-  B01000, //  *
-  B00100, //   *
-  B00010, //    *
-  B00001, //     *
-  B00010, //    *
-  B00100, //   *
-  B01000, //  *
-  B00000  //
+  B01000,
+  B00100,
+  B00010,
+  B00001,
+  B00010,
+  B00100,
+  B01000,
+  B00000
 };
 
 #include <Wire.h>
@@ -153,7 +153,6 @@ void loop() {
   operateMainMenu();
 }
 
-// This function will generate the 2 menu items that can fit on the screen. They will change as you scroll through your menu. Up and down arrows will indicate your current menu position.
 void mainMenuDraw() {
   Serial.print(menuPage);
   lcd.clear();
@@ -175,31 +174,28 @@ void mainMenuDraw() {
   }
 }
 
-// When called, this function will erase the current cursor and redraw it based on the cursorPosition and menuPage variables.
 void drawCursor() {
-  for (int x = 0; x < 2; x++) {     // Erases current cursor
+  for (int x = 0; x < 2; x++) {
     lcd.setCursor(0, x);
     lcd.print(" ");
   }
 
-  // The menu is set up to be progressive (menuPage 0 = Item 1 & Item 2, menuPage 1 = Item 2 & Item 3, menuPage 2 = Item 3 & Item 4), so
-  // in order to determine where the cursor should be you need to see if you are at an odd or even menu page and an odd or even cursor position.
   if (menuPage % 2 == 0) {
-    if (cursorPosition % 2 == 0) {  // If the menu page is even and the cursor position is even that means the cursor should be on line 1
+    if (cursorPosition % 2 == 0) {
       lcd.setCursor(0, 0);
       lcd.write(byte(0));
     }
-    if (cursorPosition % 2 != 0) {  // If the menu page is even and the cursor position is odd that means the cursor should be on line 2
+    if (cursorPosition % 2 != 0) {
       lcd.setCursor(0, 1);
       lcd.write(byte(0));
     }
   }
   if (menuPage % 2 != 0) {
-    if (cursorPosition % 2 == 0) {  // If the menu page is odd and the cursor position is even that means the cursor should be on line 2
+    if (cursorPosition % 2 == 0) {
       lcd.setCursor(0, 1);
       lcd.write(byte(0));
     }
-    if (cursorPosition % 2 != 0) {  // If the menu page is odd and the cursor position is odd that means the cursor should be on line 1
+    if (cursorPosition % 2 != 0) {
       lcd.setCursor(0, 0);
       lcd.write(byte(0));
     }
@@ -219,11 +215,11 @@ void operateMainMenu() {
     }
     button = evaluateButton(readKey);
     switch (button) {
-      case 0: // When button returns as 0 there is no action taken
+      case 0:
         break;
-      case 1:  // This case will execute if the "forward" button is pressed
+      case 1: 
         button = 0;
-        switch (cursorPosition) { // The case that is selected here is dependent on which menu page you are on and where the cursor is.
+        switch (cursorPosition) {
           case 0:
             setLedStateManually();            
             break;
@@ -323,7 +319,6 @@ void operateMainMenu() {
   }
 }
 
-// This function is called whenever a button press is evaluated. The LCD shield works by observing a voltage drop across the buttons all hooked up to A0.
 int evaluateButton(int x) {
   int result = 0;
   if (x < 50) {
@@ -338,7 +333,7 @@ int evaluateButton(int x) {
   return result;
 }
 
-void setBrightnessMenu() { // Function executes when you select the 2nd item from main menu
+void setBrightnessMenu() { 
   int activeButton = 0;
 
   lcd.clear();
@@ -395,7 +390,7 @@ void setBrightnessMenu() { // Function executes when you select the 2nd item fro
         lcd.setCursor(8, 1);
         lcd.print(brightness);
         break;
-      case 4:  // This case will execute if the "back" button is pressed
+      case 4: 
         button = 0;
         activeButton = 1;
         break;
@@ -403,7 +398,7 @@ void setBrightnessMenu() { // Function executes when you select the 2nd item fro
   }
 }
 
-void setFilterPumpState() { // Function executes when you select the 2nd item from main menu
+void setFilterPumpState() { 
   int activeButton = 0;
 
   lcd.clear();
@@ -459,7 +454,7 @@ void setFilterPumpState() { // Function executes when you select the 2nd item fr
           lcd.print("On");
         }
         break;
-      case 4:  // This case will execute if the "back" button is pressed
+      case 4: 
         button = 0;
         activeButton = 1;
         break;
@@ -467,7 +462,7 @@ void setFilterPumpState() { // Function executes when you select the 2nd item fr
   }
 }
 
-void waterPumpInStateMenu() { // Function executes when you select the 2nd item from main menu
+void waterPumpInStateMenu() { 
   int activeButton = 0;
 
   lcd.clear();
@@ -527,7 +522,7 @@ void waterPumpInStateMenu() { // Function executes when you select the 2nd item 
           lcd.print("On");
         }
         break;
-      case 4:  // This case will execute if the "back" button is pressed
+      case 4: 
         button = 0;
         activeButton = 1;
         break;
@@ -535,7 +530,7 @@ void waterPumpInStateMenu() { // Function executes when you select the 2nd item 
   }
 }
 
-void waterPumpOutStateMenu() { // Function executes when you select the 2nd item from main menu
+void waterPumpOutStateMenu() { 
   int activeButton = 0;
 
   lcd.clear();
@@ -595,7 +590,7 @@ void waterPumpOutStateMenu() { // Function executes when you select the 2nd item
           lcd.print("On");
         }
         break;
-      case 4:  // This case will execute if the "back" button is pressed
+      case 4: 
         button = 0;
         activeButton = 1;
         break;
@@ -603,7 +598,7 @@ void waterPumpOutStateMenu() { // Function executes when you select the 2nd item
   }
 }
 
-void feedNowMenu() { // Function executes when you select the 3rd item from main menu
+void feedNowMenu() {
   int activeButton = 0;
 
   lcd.clear();
@@ -624,7 +619,7 @@ void feedNowMenu() { // Function executes when you select the 3rd item from main
       case 1:
         moveServo();
         break;
-      case 4:  // This case will execute if the "back" button is pressed
+      case 4:
         button = 0;
         activeButton = 1;
         break;
@@ -632,7 +627,7 @@ void feedNowMenu() { // Function executes when you select the 3rd item from main
   }
 }
 
-void setLedStateManually() { // Function executes when you select the 4th item from main menu
+void setLedStateManually() { 
   int activeButton = 0;
 
   lcd.clear();
@@ -692,7 +687,7 @@ void setLedStateManually() { // Function executes when you select the 4th item f
           lcd.print("On");
         }
         break;
-      case 4:  // This case will execute if the "back" button is pressed
+      case 4: 
         button = 0;
         activeButton = 1;
         break;
@@ -700,7 +695,7 @@ void setLedStateManually() { // Function executes when you select the 4th item f
   }
 }
 
-void setFeederMenu() { // Function executes when you select the 5th item from main menu
+void setFeederMenu() {
   int activeButton = 0;
   
   lcd.clear();
@@ -847,7 +842,7 @@ void setFeederMenu() { // Function executes when you select the 5th item from ma
         }
 
         break;
-      case 4:  // This case will execute if the "back" button is pressed
+      case 4: 
         button = 0;
         activeButton = 1;
         lcd.noBlink();
@@ -856,7 +851,7 @@ void setFeederMenu() { // Function executes when you select the 5th item from ma
   }
 }
 
-void setAutoLedOn() { // Function executes when you select the 6th item from main menu
+void setAutoLedOn() {
   int activeButton = 0;
 
   lcd.clear();
@@ -995,7 +990,7 @@ void setAutoLedOn() { // Function executes when you select the 6th item from mai
         }
 
         break;
-      case 4:  // This case will execute if the "back" button is pressed
+      case 4: 
         button = 0;
         activeButton = 1;
         lcd.noBlink();
@@ -1004,7 +999,7 @@ void setAutoLedOn() { // Function executes when you select the 6th item from mai
   }
 }
 
-void setAutoLedOff() { // Function executes when you select the 7th item from main menu
+void setAutoLedOff() {
   int activeButton = 0;
 
   lcd.clear();
@@ -1147,7 +1142,7 @@ void setAutoLedOff() { // Function executes when you select the 7th item from ma
         }
 
         break;
-      case 4:  // This case will execute if the "back" button is pressed
+      case 4: 
         button = 0;
         activeButton = 1;
         lcd.noBlink();
